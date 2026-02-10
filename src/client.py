@@ -21,7 +21,7 @@ peer_public_keys = {} #Stores public keys of other users (Alice/Bob)
 my_private_key: Optional[RSAPrivateKey] = None #My private RSA key for decrypting session keys
 my_username = ""
 
-#NETWROK SECURITY: Anti-Replay Cache
+#NETWORK SECURITY: Anti-Replay Cache
 #We store hashes of messages received in the last X seconds to prevent duplicates
 seen_signatures = set()
 REPLAY_WINDOW_SECONDS = 60.0 #Messages older than 60s are discarded
@@ -46,11 +46,11 @@ def load_public_key_from_pem(pem_bytes):
 
 
 def receive_handler(sock):
-    """Thread loop to listen for incoming encrypted messages."""
+    """Thread loop to listen for incoming messages."""
     while True:
         try:
             #Read from socket. Buffer size is 8192 to accommodate padded JSONs
-            chunk = sock.recv(8192).decode('utf-8')  # Buffer aumentato
+            chunk = sock.recv(8192).decode('utf-8')
             if not chunk:
                 print("\n[!] Disconnected.")
                 sys.exit(0)
@@ -66,6 +66,10 @@ def receive_handler(sock):
 
 
 def process_message(msg):
+    """ Processes network events to update peer public keys and decrypts secure messages using hybrid RSA+AES-GCM.
+        Enforces integrity via AAD and prevents replay attacks using timestamp validation and signature caching.
+        Updates global state and outputs decrypted text or security alerts to the console. """
+
     global peer_public_keys, my_private_key, seen_signatures
 
     if my_private_key is None: return
@@ -77,13 +81,13 @@ def process_message(msg):
         new_user = msg['username']
         if new_user != my_username:
             peer_public_keys[new_user] = load_public_key_from_pem(msg['public_key'])
-            print(f"\r[Server] {new_user} è entrato.\nYou: ", end="")
+            print(f"\r[Server] {new_user} has joined.\nYou: ", end="")
 
     elif msg_type == "USER_LIST":
         #Bulk update of all online users' public keys
         for u in msg['users']:
             peer_public_keys[u['username']] = load_public_key_from_pem(u['public_key'])
-        print(f"\r[Server] Utenti online: {list(peer_public_keys.keys())}\nYou: ", end="")
+        print(f"\r[Server] Online users: {list(peer_public_keys.keys())}\nYou: ", end="")
 
     elif msg_type == "MESSAGE":
         sender = msg['sender']
@@ -95,11 +99,11 @@ def process_message(msg):
         current_time = time.time()
         #Discard if too old (prevent replay of old captured traffic)
         if current_time - timestamp > REPLAY_WINDOW_SECONDS:
-            print(f"\r[!] Message discared: Too old (Replay Attack or Lag).\nYou: ", end="")
+            print(f"\r[!] Message discarded: Too old (Replay Attack or Lag).\nYou: ", end="")
             return
 
         if timestamp > current_time + 5.0:  #5s Tolerance per clock skew
-            print(f"\r[!] Message discared : Timestamp in the future.\nYou: ", end="")
+            print(f"\r[!] Message discarded : Timestamp in the future.\nYou: ", end="")
             return
 
         #ANTI-REPLAY CHECK (Signature Cache)
@@ -136,8 +140,7 @@ def process_message(msg):
                 #INTEGRITY CHECK (AAD-Additional Authenticated Data)
                 #We reconstruct the data that MUST match the sender's metadata.
                 #Format: "sender:timestamp"
-                #If the sender or timestamp in the JSON was tampered with,
-                #this AAD check will fail decryption.
+                #If the sender or timestamp in the JSON was tampered with, this AAD check will fail decryption.
                 aad_data = f"{sender}:{timestamp}".encode('utf-8')
                 decryptor.authenticate_additional_data(aad_data)
 
@@ -146,7 +149,7 @@ def process_message(msg):
                 print(f"\r[{sender} [SECURE]]: {plaintext.decode('utf-8')}\nTu: ", end="")
 
             except (InvalidTag, ValueError):
-                # This exception means someone modified the ciphertext OR the metadata (sender/timestamp)
+                #This exception means someone modified the ciphertext OR the metadata (sender/timestamp)
                 print(f"\r[!] ALARM: Integrity check failed! Possible metadata tampering.\nYou: ", end="")
         else:
             pass
@@ -229,10 +232,10 @@ def main():
             packet = {
                 "type": "MESSAGE",
                 "sender": my_username,
-                "timestamp": timestamp,  #Essential for replay check, test: I put timestamp -75, it will give "message too old"
+                "timestamp": timestamp,
                 "payload": payload_b64,
                 "keys": keys_map,
-                "padding": "" #initially empty
+                "padding": ""
             }
 
             #TRAFFIC ANALYSIS MITIGATION (Padding)

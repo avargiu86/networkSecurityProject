@@ -5,7 +5,7 @@ import json
 import time
 
 #SECURITY CONFIGURATION
-#Constants for defence against resource exhaustion attacks (DoS)
+#Constants for defence against DoS
 RATE_LIMIT_WINDOW = 5.0  #Time window in seconds for rate limiting
 RATE_LIMIT_COUNT = 10    #Max messages allowed within the time window
 MAX_MSG_SIZE = 4096  #Max packet size in bytes (Input Validation)
@@ -91,13 +91,13 @@ def handle_client(conn, addr):
                 break
 
             #TRAFFIC ANALYSIS DEBUG
-            print(f"🔍 [DEBUG NETWORK] Received {len(data)} bytes")
+            print(f"[DEBUG NETWORK] Received {len(data)} bytes")
 
             #Check if the message exceeds the allowed size
             if len(data) > MAX_MSG_SIZE:
                 print(
                     f"[!] SECURITY ALERT: {client_name} sent a packet too large ({len(data)} bytes).")
-                print(f"    Possible Buffer Overflow attempt or JSON Bomb.")
+                print(f"Possible buffer overflow attempt or JSON bomb.")
                 remove_client(conn)  #Punitive disconnection
                 return  #Exit thread
 
@@ -106,18 +106,18 @@ def handle_client(conn, addr):
 
                 #SECURITY: RATE LIMITING CHECK
                 current_time = time.time()
-                # Retrieve message history for this client
+                #Retrieve message history for this client
                 history = clients[conn]["msg_history"]
 
                 #Cleanup: Keep only timestamps within the sliding window (last 5 seconds)
                 history = [t for t in history if current_time - t < RATE_LIMIT_WINDOW]
-                clients[conn]["msg_history"] = history  #Update the clean list
+                clients[conn]["msg_history"] = history
 
                 #Enforcement: If count exceeds limit, block the user
                 if len(history) >= RATE_LIMIT_COUNT:
                     print(f"[!] DoS Attack Detected da {client_name}. Forced disconnection.")
                     remove_client(conn)
-                    return  #Exits the function and terminates the thread
+                    return
 
                 #Log: Add current timestamp to history
                 history.append(current_time)
@@ -126,15 +126,15 @@ def handle_client(conn, addr):
                 #SECURITY CHECK: Server-side Spoofing Prevention
                 #Identity Binding: Ensure the sender declared in the JSON ('sender')
                 #matches the authenticated Common Name from the certificate ('client_name').
-                #Note: The actual integrity check will be done by the client with GCM,
+                #The actual integrity check will be done by the client with GCM,
                 #but this saves bandwidth by avoiding false forwards.
                 if msg_obj.get("type") == "MESSAGE":
                     declared_sender = msg_obj.get("sender")
                     if declared_sender != client_name:
                         print(f"[!] Spoofing detected! {client_name} is trying to send as {declared_sender}")
-                        continue  # Drop the malicious packet
+                        continue  #Drop the malicious packet
 
-                    #Extract encrypted payload for display (Server cannot decrypt this)
+                    #Extract encrypted payload for display
                     encrypted_payload = msg_obj.get('payload', '')
 
                     #We truncate it to 50 characters to avoid clogging up the terminal,
@@ -175,12 +175,12 @@ def main():
         sock.bind(('localhost', 8443))
         sock.listen(5)
     except OSError as e:
-        print(f"Errore bind: {e}")
+        print(f"Error bind: {e}")
         return
 
-    print("=== SECURE  RELAY SERVER STARTED ===")
+    print("Server started successfully. Listening on localhost:8443. Waiting for connections...")
 
-    try: #connection acceptance loop
+    try: #Connection acceptance loop
         while True:
             newsock = None
             try:
@@ -188,7 +188,7 @@ def main():
                 newsock, addr = sock.accept()
                 #Wrap the socket with SSL/TLS (perform the handshake)
                 ssl_conn = context.wrap_socket(newsock, server_side=True)
-                # Start a new thread to handle this client
+                #Start a new thread to handle this client
                 t = threading.Thread(target=handle_client, args=(ssl_conn, addr), daemon=True)
                 t.start()
             except (ssl.SSLError, OSError) as e:

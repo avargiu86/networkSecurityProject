@@ -18,14 +18,14 @@ def create_cert(cn, issuer_cert=None, issuer_key=None, is_ca=False, is_server=Fa
    cert.get_subject().C = "IT"
    cert.get_subject().O = "UniCa NetSec Course"
    cert.get_subject().CN = cn #Common Name: used to identify the user (Alice/Bob) or the server
-   cert.set_version(2) # Set version 3 to support extensions
+   cert.set_version(2) #Set version 3 to support extensions
    cert.set_serial_number(random.randint(1000, 1000000)) #Random serial to avoid collision
 
    #Validity period: from now until 1 year (365 days)
    cert.gmtime_adj_notBefore(0)
    cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)
 
-   # Signature Management (Chain of Trust)
+   #Signature Management (Chain of Trust)
    if is_ca: #If it is a CA, it self-signs (Root of Trust)
        issuer = cert.get_subject()
        signing_key = key
@@ -48,7 +48,6 @@ def create_cert(cn, issuer_cert=None, issuer_key=None, is_ca=False, is_server=Fa
 
    #Unique identifier of the public key
    extensions.append(crypto.X509Extension(b"subjectKeyIdentifier", False, b"hash", subject=cert))
-
 
    if is_server:
        #SAN (Subject Alternative Name): Mandatory to avoid SSL errors with localhost/modern IPs
@@ -74,7 +73,7 @@ def main():
    if not os.path.exists('certs'):
        os.makedirs('certs')
 
-   print("=== PKI Generation (E2EE Ready) ===")
+   print("Initiating PKI Generation...")
 
    #Root CA: key and self-signed certificate.
    ca_key, ca_cert = create_cert("NetSec Root CA", is_ca=True)
@@ -100,7 +99,7 @@ def main():
    #mTLS authentication to the server
    #E2EE key exchange between clients (thanks to keyEncipherment)
 
-   print("\nPKI Generated. Client certificates now support encryption.")
+   print("\nPKI Generated.")
 
 
 if __name__ == "__main__":

@@ -192,7 +192,7 @@ def main():
                 t = threading.Thread(target=handle_client, args=(ssl_conn, addr), daemon=True)
                 t.start()
             except (ssl.SSLError, OSError) as e:
-                print(f"Errore connessione: {e}")
+                print(f"Connection error: {e}")
                 if newsock: newsock.close()
     except KeyboardInterrupt:
         pass

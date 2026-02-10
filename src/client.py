@@ -252,7 +252,7 @@ def main():
             ssl_sock.send(final_json.encode('utf-8')) #Send over SSL/TLS socket
 
     except KeyboardInterrupt:
-        print("\nUscita...")
+        print("\nExit...")
     finally:
         sock.close()
 

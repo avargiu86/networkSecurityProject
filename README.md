@@ -37,7 +37,7 @@ python client.py
 ```
 
 # Security Analysis & Attack Simulations
-This architecture is resistant to MITM, Spoofing, and Replay attacks. You can verify the defenses using the included test scripts.
+This architecture is resistant to DoS, Spoofing, and Replay attacks. You can verify the defenses using the included test scripts.
 
 ### 1. Test DoS Protection 
 Simulates an attack where a 5000-byte payload is sent to crash the server (limit is 4096 bytes).

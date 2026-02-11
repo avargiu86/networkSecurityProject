@@ -14,30 +14,30 @@ pip install -r requirements.txt
 Run the generation script to create the Certificate Authority and keys. This will create a `certs/` directory containing the Root CA, Server, and Client certificates.
 
 ```bash
-python gen_certs.py
+python gen_pki.py
 ```
 
 ### 2. Start the Secure Server
 ```bash
-python server.py
+python src/server.py
 ```
 
 ### 3. Start the Clients
 Open two separate terminal windows (one for Alice, one for Bob).
 Terminal 1: Alice
 ```bash
-python client.py
+python src/client.py
 #Select Identity: A
 ```
 
 Terminal 2: Bob
 ```bash
-python client.py
+python src/client.py
 #Select Identity: B
 ```
 
 # Security Analysis & Attack Simulations
-This architecture is resistant to MITM, Spoofing, and Replay attacks. You can verify the defenses using the included test scripts.
+This architecture is resistant to DoS, Spoofing, and Replay attacks. You can verify the defenses using the included test scripts.
 
 ### 1. Test DoS Protection 
 Simulates an attack where a 5000-byte payload is sent to crash the server (limit is 4096 bytes).

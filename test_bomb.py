@@ -1,10 +1,10 @@
-import socket, ssl
+import socket, ssl, time
 
 
 def test_json_bomb():
     """ Simulates a DoS attack by sending an oversized 5000-byte payload.
         Verifies that the server strictly enforces its 4096-byte limit by checking for an immediate connection reset or closure."""
-    
+
     #SSL Configuration using Alice's legitimate certificates
     #We need valid credentials to pass the mTLS handshake and reach the application layer
     context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
@@ -16,20 +16,35 @@ def test_json_bomb():
 
     try:
         conn.connect(('localhost', 8443))
-        print("[ATTACKER] Connected with Alice's certificate. Preparing oversized payload...")
+        print("[ATTACKER] Connected with Alice's certificate. Preparing giant payload...")
+
+        #Clearing the initial buffer
+        conn.settimeout(0.5)
+        time.sleep(0.5)
+        try:
+            while True:
+                #We read everything there is and throw it away
+                dump = conn.recv(4096)
+                if not dump: break
+        except socket.timeout:
+            pass  #Timeout expired: the buffer is empty
+        except Exception as e:
+            print(f"[WARNING] Error clearing buffer: {e}")
+
+        conn.settimeout(None)
 
         #Create a 5000-byte payload (The server's strict limit is 4096 bytes)
         #It doesn't need to be valid JSON; the server should block based on raw size.
         oversized_payload = b"A" * 5000
 
-        print(f"[ATTACK] Sending {len(oversized_payload)} bytes of payload...")
+        print(f"[ATTACK] Sending {len(oversized_payload)} bytes of garbage...")
         conn.send(oversized_payload)
 
-        #Wait to see if the server kicks us out
+        # Wait to see if the server kicks us out
         try:
             data = conn.recv(1024)
             if not data:
-                print("[SUCCESS] The server closed the connection immediately.")
+                print("[SUCCESS] The server closed the connection immediately!")
             else:
                 print("[FAILURE] The server responded (it should have dropped us).")
         except (ConnectionResetError, OSError, ssl.SSLError):

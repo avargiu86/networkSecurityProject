@@ -16,7 +16,7 @@ def test_json_bomb():
 
     try:
         conn.connect(('localhost', 8443))
-        print("[ATTACKER] Connected with Alice's certificate. Preparing giant payload...")
+        print("[ATTACKER] Connected with Alice's certificate. Preparing oversized payload...")
 
         #Clearing the initial buffer
         conn.settimeout(0.5)
@@ -37,14 +37,14 @@ def test_json_bomb():
         #It doesn't need to be valid JSON; the server should block based on raw size.
         oversized_payload = b"A" * 5000
 
-        print(f"[ATTACK] Sending {len(oversized_payload)} bytes of garbage...")
+        print(f"[ATTACK] Sending {len(oversized_payload)} bytes of payload...")
         conn.send(oversized_payload)
 
         # Wait to see if the server kicks us out
         try:
             data = conn.recv(1024)
             if not data:
-                print("[SUCCESS] The server closed the connection immediately!")
+                print("[SUCCESS] The server closed the connection immediately.")
             else:
                 print("[FAILURE] The server responded (it should have dropped us).")
         except (ConnectionResetError, OSError, ssl.SSLError):

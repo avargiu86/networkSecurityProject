@@ -47,13 +47,13 @@ def attempt_spoofing():
             data = conn.recv(1024)
             if not data:
                 #If we receive no data, the server closed the socket -> Security Check Passed
-                print("[BLOCKED] The server closed the connection! (System is Secure).")
+                print("[BLOCKED] The server closed the connection. (System is Secure).")
             else:
-                # If we receive data, the server accepted the fake identity -> Security Check Failed
+                #If we receive data, the server accepted the fake identity -> Security Check Failed
                 print(f"[VULNERABILITY] The server sent data back: {data}")
         except socket.timeout:
             #If the timeout occurs, it means that the server has ignored the packet (Silent Drop)
-            print("[BLOCKED] Server ignored the packet (Silent Drop). System is Secure.")
+            print("[BLOCKED] Server ignored the packet (Silent Drop). (System is Secure).")
     except Exception as e:
         print(f"[ERROR] {e}")
     finally:

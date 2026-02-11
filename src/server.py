@@ -115,7 +115,7 @@ def handle_client(conn, addr):
 
                 #Enforcement: If count exceeds limit, block the user
                 if len(history) >= RATE_LIMIT_COUNT:
-                    print(f"[!] DoS Attack Detected da {client_name}. Forced disconnection.")
+                    print(f"[!] DoS Attack Detected from {client_name}. Forced disconnection.")
                     remove_client(conn)
                     return
 
@@ -131,7 +131,7 @@ def handle_client(conn, addr):
                 if msg_obj.get("type") == "MESSAGE":
                     declared_sender = msg_obj.get("sender")
                     if declared_sender != client_name:
-                        print(f"[!] Spoofing detected! {client_name} is trying to send as {declared_sender}")
+                        print(f"[!] Spoofing detected. {client_name} is trying to send as {declared_sender}")
                         continue  #Drop the malicious packet
 
                     #Extract encrypted payload for display

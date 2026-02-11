@@ -14,7 +14,7 @@ pip install -r requirements.txt
 Run the generation script to create the Certificate Authority and keys. This will create a `certs/` directory containing the Root CA, Server, and Client certificates.
 
 ```bash
-python gen_certs.py
+python gen_pki.py
 ```
 
 ### 2. Start the Secure Server

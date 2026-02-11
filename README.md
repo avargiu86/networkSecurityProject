@@ -19,20 +19,20 @@ python gen_pki.py
 
 ### 2. Start the Secure Server
 ```bash
-python server.py
+python src/server.py
 ```
 
 ### 3. Start the Clients
 Open two separate terminal windows (one for Alice, one for Bob).
 Terminal 1: Alice
 ```bash
-python client.py
+python src/client.py
 #Select Identity: A
 ```
 
 Terminal 2: Bob
 ```bash
-python client.py
+python src/client.py
 #Select Identity: B
 ```
 

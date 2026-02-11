@@ -146,11 +146,11 @@ def process_message(msg):
 
                 #Finalize decryption (throws InvalidTag if integrity fails)
                 plaintext = decryptor.update(ciphertext) + decryptor.finalize()
-                print(f"\r[{sender} [SECURE]]: {plaintext.decode('utf-8')}\nTu: ", end="")
+                print(f"\r[{sender}]: {plaintext.decode('utf-8')}\nYou: ", end="")
 
             except (InvalidTag, ValueError):
                 #This exception means someone modified the ciphertext OR the metadata (sender/timestamp)
-                print(f"\r[!] ALARM: Integrity check failed! Possible metadata tampering.\nYou: ", end="")
+                print(f"\r[!] ALARM: Integrity check failed. Possible metadata tampering.\nYou: ", end="")
         else:
             pass
 
@@ -158,7 +158,7 @@ def process_message(msg):
 def main():
     global my_private_key, my_username
 
-    print("--- CHAT E2EE CLIENT (with AAD Integrity & Anti-Replay) ---")
+    print("--- CHAT STARTED ---")
     choice = input("Identity (A/B): ").strip().upper()
 
     #Identity Setup
@@ -251,7 +251,7 @@ def main():
             final_json = json.dumps(packet)
 
             sys.stdout.write("\033[F")
-            sys.stdout.write(f"\rYou [SECURE]: {text}\nYou: ")
+            sys.stdout.write(f"\rYou: {text}\nYou: ")
             ssl_sock.send(final_json.encode('utf-8')) #Send over SSL/TLS socket
 
     except KeyboardInterrupt:

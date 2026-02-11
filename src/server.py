@@ -142,7 +142,7 @@ def handle_client(conn, addr):
                     preview = encrypted_payload[:50] + "..." if len(encrypted_payload) > 50 else encrypted_payload
 
                     print(f"[Relay] Message from {client_name} forwarded.")
-                    print(f" [SERVER SEES]: {preview}")
+                    print(f"[SERVER SEES]: {preview}")
 
                     broadcast(msg_obj, conn) #If all checks pass, relay the message to other clients
 
